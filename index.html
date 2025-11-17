@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>АНOНИМНАЯ СТЕNА (Firebase)</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ⚠️ ВСТАВЬТЕ СЮДА ВАШИ КЛЮЧИ ИЗ КОНСОЛИ FIREBASE
+        const firebaseConfig = {
+           apiKey: "AIzaSyC3JH8ZcIFLNb0SsmwB9kYBDEMt1lsVgRM",
+           authDomain: "huega-chat.firebaseapp.com",
+           projectId: "huega-chat",
+           storageBucket: "huega-chat.firebasestorage.app",
+           messagingSenderId: "509304723720",
+           appId: "1:509304723720:web:e566cfe1368285941ff4bd",
+        };
+
+        // Инициализация Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = app.firestore();
+        const postsCollection = db.collection('anonWallPosts');
+
+        // --- ЛОКАЛЬНОЕ ХРАНИЛИЩЕ ДЛЯ ID ---
+        const USER_ID = localStorage.getItem('anonUserId') || (Math.random().toString(36).substring(2, 9));
+        localStorage.setItem('anonUserId', USER_ID);
+    </script>
+
+    <style>
+        /* ==================================== */
+        /* CSS СТИЛИ: Без изменений            */
+        /* ==================================== */
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3); }
+            50% { transform: scale(1.03); box-shadow: 0 0 10px rgba(0, 198, 255, 0.8), 0 0 20px rgba(0, 198, 255, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3); }
+        }
+        
+        @keyframes newPostFlash {
+            0%, 100% { border-color: rgba(255, 255, 255, 0.2); box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3); }
+            50% { border-color: #00ff00; box-shadow: 0 0 20px #00ff00, 0 0 40px rgba(0, 255, 0, 0.5); }
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 10%, #0c0033 0%, #000000 100%);
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: hidden;
+        }
+
+        .anon-wall {
+            width: 100vw;
+            height: 100vh;
+            position: relative; 
+            overflow: hidden; 
+        }
+
+        header {
+            width: 100%;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            z-index: 1001; 
+        }
+        
+        header h1 {
+            font-size: 3em;
+            letter-spacing: 5px;
+            padding-top: 20px;
+            margin: 0; 
+            text-align: center;
+        }
+
+        .controls-container {
+            position: fixed; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls-container::before {
+            content: '';
+            position: absolute;
+            width: 300px; 
+            height: 300px;
+            border: 2px dashed rgba(0, 198, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .filter-button {
+            position: fixed; 
+            padding: 10px 15px;
+            background: rgba(0, 198, 255, 0.3);
+            color: #ffffff;
+            border: 1px solid #00c6ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            z-index: 1002; 
+        }
+
+        #top-10-button { top: 20px; right: 20px; }
+        #my-posts-button { top: 20px; left: 20px; }
+        .active-filter { background: #ff69b4 !important; border: 1px solid #ff69b4 !important; }
+
+        .input-container {
+            display: flex;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            padding: 5px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            width: 350px;
+            margin-top: 20px;
+        }
+
+        .input-container input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 20px;
+            color: #ffffff;
+            font-size: 1.1em;
+            outline: none;
+        }
+        
+        .send-button {
+            background: linear-gradient(45deg, #007bff, #00c6ff);
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .send-button svg { color: #ffffff; transform: translate(2px, 0); }
+
+        .posts-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 300vw; 
+            height: 300vh;
+            cursor: grab; 
+            will-change: transform; 
+            transform: translate(-100vw, -100vh); 
+            transform-origin: 50% 50%;
+            z-index: 1; 
+        }
+        
+        .posts-grid.is-dragging { cursor: grabbing; }
+
+        .post {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            padding: 15px 25px;
+            border-radius: 20px;
+            min-width: 200px;
+            max-width: 250px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3);
+            transition: opacity 0.5s, transform 0.5s, left 0.5s, top 0.5s, border-color 0.5s;
+            z-index: 50; 
+            margin-left: -125px; 
+            margin-top: -100px; 
+        }
+        
+        .post.new-post { animation: newPostFlash 0.2s 10 alternate; }
+        .post-hidden { opacity: 0 !important; pointer-events: none; }
+        .post.top-post { animation: pulse 2s ease-in-out infinite; }
+        
+        .delete-button { position: absolute; top: 5px; right: 5px; background: none; border: none; color: rgba(255, 255, 255, 0.5); font-size: 1.2em; cursor: pointer; transition: color 0.2s; line-height: 1; padding: 5px; z-index: 60; }
+        .delete-button:hover { color: #ff0000; }
+        
+        .post-footer { display: flex; align-items: center; font-size: 0.9em; color: rgba(255, 255, 255, 0.7); }
+        .votes { color: #00c6ff; margin-right: 15px; cursor: pointer; transition: all 0.2s; }
+        .likes { color: #ff69b4; cursor: pointer; transition: all 0.2s; }
+        .voted { cursor: default !important; opacity: 0.8; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+    <div class="anon-wall">
+        <header>
+            <h1>СТЕNА АНOНИМ</h1>
+        </header>
+
+        <div class="controls-container">
+            <div class="input-container">
+                <input type="text" id="post-input" placeholder="Написать анонимоное сообщение...">
+                <button class="send-button" id="send-button">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M2.01 21L23 12 2.01 3v7l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <button class="filter-button" id="my-posts-button">ТВОИ ПОСТЫ</button>
+        <button class="filter-button" id="top-10-button">ТОП-10 АПВОУТОВ</button>
+        
+        <div class="posts-grid" id="posts-container">
+            </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputField = document.getElementById('post-input');
+            const sendButton = document.getElementById('send-button');
+            const postsContainer = document.getElementById('posts-container');
+            const top10Button = document.getElementById('top-10-button');
+            const myPostsButton = document.getElementById('my-posts-button');
+            
+            // --- КОНСТАНТЫ ---
+            const CANVAS_SIZE_VW = 300; 
+            const MAX_RADIUS = 120; 
+            const POST_SPACING = 20; 
+            const MIN_RADIUS_OFFSET = 15; 
+            
+            const CENTER_X = CANVAS_SIZE_VW / 2;
+            const CENTER_Y = CANVAS_SIZE_VW / 2; 
+            
+            let postsData = []; // Данные теперь берутся из Firestore
+            let postIdCounter = 0; 
+            let currentFilter = 'all'; 
+
+            // ===============================================
+            // ФУНКЦИИ FIREBASE (НОВЫЕ)
+            // ===============================================
+
+            /** Сохраняет или обновляет пост в Firestore. */
+            async function savePostToFirestore(post) {
+                // Используем ID поста как имя документа для простоты.
+                try {
+                    await postsCollection.doc(String(post.id)).set(post);
+                } catch (e) {
+                    console.error("Ошибка при сохранении поста в Firestore: ", e);
+                }
+            }
+
+            /** Удаляет пост из Firestore. */
+            async function deletePostFromFirestore(postId) {
+                 if (confirm('Вы уверены, что хотите удалить этот пост?')) {
+                    try {
+                        await postsCollection.doc(String(postId)).delete();
+                    } catch (e) {
+                        console.error("Ошибка при удалении поста из Firestore: ", e);
+                    }
+                }
+                // renderPosts() будет вызван слушателем onSnapshot
+            }
+            
+            /** Инициализация слушателя Firestore. Обновляет postsData и перерисовывает стену. */
+            function initFirestoreListener() {
+                postsCollection.onSnapshot(snapshot => {
+                    postsData = [];
+                    let maxId = 0;
+                    
+                    snapshot.forEach(doc => {
+                        const post = doc.data();
+                        postsData.push(post);
+                        if (post.id > maxId) {
+                            maxId = post.id;
+                        }
+                    });
+                    
+                    postIdCounter = maxId;
+                    
+                    // Обновляем позиции после загрузки/изменения данных
+                    updateAllPostPositions();
+                    
+                    // Перерисовываем стену
+                    renderPosts();
+                }, error => {
+                    console.error("Ошибка при получении данных Firestore: ", error);
+                });
+            }
+
+            // ===============================================
+            // ФУНКЦИИ СПИРАЛЬНОГО ПОЗИЦИОНИРОВАНИЯ И СОРТИРОВКИ (Без изменений)
+            // ===============================================
+            function calculateSpiralPositions(data) {
+                const sortedPosts = [...data].sort((a, b) => b.id - a.id);
+                
+                return sortedPosts.map((post, index) => {
+                    const postOrder = index + 1; 
+                    
+                    let radius = MIN_RADIUS_OFFSET + Math.sqrt(postOrder) * POST_SPACING; 
+                    const angle = postOrder * (137.5 * (Math.PI / 180)); 
+
+                    if (radius > MAX_RADIUS) {
+                        radius = MAX_RADIUS;
+                    }
+
+                    const xOffset = radius * Math.cos(angle);
+                    const yOffset = radius * Math.sin(angle);
+
+                    return {
+                        id: post.id,
+                        position: {
+                            left: CENTER_X + xOffset,
+                            top: CENTER_Y + yOffset
+                        }
+                    };
+                });
+            }
+
+            function updateAllPostPositions() {
+                // При работе с Firestore, мы обновляем postsData, а затем сохраняем только через savePostToFirestore()
+                const newPositions = calculateSpiralPositions(postsData);
+                newPositions.forEach(newPos => {
+                    const post = postsData.find(p => p.id === newPos.id);
+                    if (post) {
+                        // Обновляем позицию локально
+                        post.position = newPos.position;
+                    }
+                });
+            }
+
+            function sortPostsData(data) {
+                return data.sort((a, b) => {
+                    if (a.votes !== b.votes) {
+                        return b.votes - a.votes; 
+                    }
+                    return b.id - a.id; 
+                });
+            }
+
+            // ===============================================
+            // ФУНКЦИЯ ОБНОВЛЕНИЯ И ОТОБРАЖЕНИЯ ПОСТОВ НА ХОЛСТЕ (Обновлено для работы с новым массивом)
+            // ===============================================
+            function renderPosts() {
+                let postsToDisplay = [];
+                let temporaryPositions = {}; 
+
+                if (currentFilter === 'mine') {
+                    postsToDisplay = postsData.filter(p => p.userId === USER_ID);
+                    const tempPos = calculateSpiralPositions(postsToDisplay);
+                    tempPos.forEach(p => temporaryPositions[p.id] = p.position);
+
+                } else if (currentFilter === 'top10') {
+                    postsToDisplay = sortPostsData([...postsData]).slice(0, 10);
+                    const tempPos = calculateSpiralPositions(postsToDisplay);
+                    tempPos.forEach(p => temporaryPositions[p.id] = p.position);
+                    
+                } else { // 'all'
+                    postsToDisplay = postsData;
+                }
+                
+                const displayIds = new Set(postsToDisplay.map(p => p.id));
+                
+                // 1. Создание/Обновление/Скрытие элементов
+                postsData.forEach(postData => {
+                    let postElement = document.querySelector(`.post[data-post-id="${postData.id}"]`);
+                    let isVisible = displayIds.has(postData.id);
+
+                    if (!postElement) {
+                        postElement = createPostElementDOM(postData);
+                        postsContainer.appendChild(postElement);
+                    } else {
+                         // Обновляем содержимое (голоса, лайки)
+                         postElement.querySelector('.votes').textContent = `⬆ ${postData.votes}`;
+                         postElement.querySelector('.likes').textContent = `♡ ${postData.likes}`;
+                         if (postData.likedBy[USER_ID]) {
+                            postElement.querySelector('.likes').textContent = `♥ ${postData.likes}`;
+                         }
+                         if (postData.votedBy[USER_ID]) {
+                            postElement.querySelector('.votes').classList.add('voted');
+                         }
+                    }
+                    
+                    let pos = postData.position;
+                    if (currentFilter !== 'all' && isVisible && temporaryPositions[postData.id]) {
+                        pos = temporaryPositions[postData.id];
+                    } 
+                    
+                    postElement.style.top = `${pos.top}vh`; 
+                    postElement.style.left = `${pos.left}vw`;
+
+                    if (isVisible) {
+                        postElement.classList.remove('post-hidden');
+                    } else {
+                        postElement.classList.add('post-hidden');
+                    }
+                    
+                    if (postData.votes >= 10) {
+                        postElement.classList.add('top-post');
+                    } else {
+                        postElement.classList.remove('top-post');
+                    }
+                });
+                
+                // 2. Удаление несуществующих элементов
+                Array.from(postsContainer.children).forEach(el => {
+                    const postId = parseInt(el.dataset.postId);
+                    if (!postsData.some(p => p.id === postId)) {
+                        el.remove();
+                    }
+                });
+
+                // 3. Управление активностью кнопок
+                top10Button.classList.remove('active-filter');
+                myPostsButton.classList.remove('active-filter');
+                if (currentFilter === 'top10') {
+                    top10Button.classList.add('active-filter');
+                } else if (currentFilter === 'mine') {
+                    myPostsButton.classList.add('active-filter');
+                }
+            }
+
+
+            // ===============================================
+            // ФУНКЦИЯ СОЗДАНИЯ DOM-ЭЛЕМЕНТА ПОСТА (Обновлена для работы с Firestore)
+            // ===============================================
+            function createPostElementDOM(postData) {
+                const post = document.createElement('div');
+                post.className = 'post';
+                post.dataset.postId = postData.id;
+                post.dataset.userId = postData.userId;
+                
+                const text = document.createElement('p');
+                text.textContent = postData.message;
+
+                const footer = document.createElement('div');
+                footer.className = 'post-footer';
+
+                // Кнопка удаления
+                if (postData.userId === USER_ID) {
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-button';
+                    deleteBtn.textContent = '✖';
+                    deleteBtn.title = 'Удалить мой пост';
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        deletePostFromFirestore(postData.id); // Вызываем функцию удаления из Firestore
+                    });
+                    post.appendChild(deleteBtn);
+                }
+
+                const votesSpan = document.createElement('span');
+                votesSpan.className = 'votes';
+                votesSpan.textContent = `⬆ ${postData.votes}`; 
+                
+                const likesSpan = document.createElement('span');
+                likesSpan.className = 'likes';
+                likesSpan.textContent = `♡ ${postData.likes}`;
+                
+                const alreadyVoted = postData.votedBy[USER_ID];
+                const alreadyLiked = postData.likedBy[USER_ID];
+                
+                if (alreadyVoted) { votesSpan.classList.add('voted'); }
+                if (alreadyLiked) {
+                    likesSpan.textContent = `♥ ${postData.likes}`;
+                    likesSpan.classList.add('voted');
+                    likesSpan.style.color = '#ff99c8';
+                }
+
+                // Обработчик апвоута
+                votesSpan.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    const postIndex = postsData.findIndex(p => p.id === postData.id);
+                    if (postIndex !== -1 && !postsData[postIndex].votedBy[USER_ID]) {
+                        // 1. Обновляем локальную копию
+                        const updatedPost = { ...postsData[postIndex] };
+                        updatedPost.votes++;
+                        updatedPost.votedBy[USER_ID] = true;
+                        
+                        // 2. Отправляем обновление в Firestore
+                        savePostToFirestore(updatedPost);
+                        
+                        // Изменяем DOM для мгновенного отклика (хотя onSnapshot сделает то же самое)
+                        votesSpan.textContent = `⬆ ${updatedPost.votes}`;
+                        votesSpan.classList.add('voted');
+                    }
+                });
+                
+                // Обработчик лайка
+                likesSpan.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    const postIndex = postsData.findIndex(p => p.id === postData.id);
+                    if (postIndex !== -1 && !postsData[postIndex].likedBy[USER_ID]) {
+                        // 1. Обновляем локальную копию
+                        const updatedPost = { ...postsData[postIndex] };
+                        updatedPost.likes++;
+                        updatedPost.likedBy[USER_ID] = true;
+                        
+                        // 2. Отправляем обновление в Firestore
+                        savePostToFirestore(updatedPost);
+
+                        // Изменяем DOM для мгновенного отклика
+                        likesSpan.textContent = `♥ ${updatedPost.likes}`;
+                        likesSpan.classList.add('voted');
+                        likesSpan.style.color = '#ff99c8';
+                    }
+                });
+
+                footer.appendChild(votesSpan);
+                footer.appendChild(likesSpan);
+                post.appendChild(text);
+                post.appendChild(footer);
+
+                return post;
+            }
+
+            // ===============================================
+            // ЛОГИКА ПЕРЕТАСКИВАНИЯ ХОЛСТА (PAN) (Без изменений)
+            // ===============================================
+            
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+            
+            postsContainer.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.post') || e.button !== 0) { 
+                    return; 
+                }
+                
+                isDragging = true;
+                postsContainer.classList.add('is-dragging');
+                
+                const transformMatrix = window.getComputedStyle(postsContainer).transform;
+                if (transformMatrix !== 'none') {
+                    const matrix = transformMatrix.match(/matrix.*\((.+)\)/);
+                    if (matrix && matrix[1]) {
+                        const values = matrix[1].split(', ');
+                        initialX = parseFloat(values[4] || 0);
+                        initialY = parseFloat(values[5] || 0);
+                    }
+                } else {
+                    initialX = -window.innerWidth; 
+                    initialY = -window.innerHeight; 
+                }
+                
+                startX = e.clientX;
+                startY = e.clientY;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault(); 
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                const newX = initialX + dx;
+                const newY = initialY + dy;
+                
+                postsContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    postsContainer.classList.remove('is-dragging');
+                }
+            });
+
+            // ===============================================
+            // ОБРАБОТЧИКИ ОТПРАВКИ/ФИЛЬТРАЦИИ
+            // ===============================================
+            
+            function handleSend() {
+                const message = inputField.value.trim();
+                if (message) {
+                    postIdCounter++; // Увеличиваем счетчик для нового поста
+                    const newPost = {
+                        // Используем ID как уникальный порядковый номер для спирали и сортировки
+                        id: postIdCounter, 
+                        userId: USER_ID,
+                        message: message,
+                        votes: 0,
+                        likes: 0,
+                        votedBy: {},
+                        likedBy: {},
+                        position: { top: CENTER_Y, left: CENTER_X } 
+                    };
+                    
+                    savePostToFirestore(newPost);
+                    
+                    inputField.value = '';
+                    currentFilter = 'all'; 
+                    
+                    // Анимация будет вызвана через renderPosts после onSnapshot
+                }
+            }
+
+            sendButton.addEventListener('click', handleSend);
+            inputField.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleSend();
+                }
+            });
+            
+            top10Button.addEventListener('click', () => {
+                currentFilter = currentFilter === 'top10' ? 'all' : 'top10';
+                renderPosts();
+            });
+
+            myPostsButton.addEventListener('click', () => {
+                currentFilter = currentFilter === 'mine' ? 'all' : 'mine';
+                renderPosts();
+            });
+            
+            // --- ГЛАВНЫЙ ЗАПУСК ---
+            initFirestoreListener(); 
+        });
+    </script>
+</body>
+</html>

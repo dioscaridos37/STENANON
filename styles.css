@@ -1,0 +1,140 @@
+/* ОБЩИЕ СТИЛИ И ФОН */
+body {
+    background: radial-gradient(circle at 50% 10%, #0c0033 0%, #000000 100%);
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 50px;
+}
+
+.anon-wall {
+    width: 90%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 3em;
+    margin-bottom: 50px;
+    letter-spacing: 5px;
+}
+
+/* СТИЛИ КОНТЕЙНЕРА ВВОДА */
+.input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60%;
+    max-width: 500px;
+    margin: 0 auto 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.input-container input {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    padding: 15px 20px;
+    color: #ffffff;
+    font-size: 1.1em;
+    outline: none;
+}
+
+.input-container input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.send-button {
+    background: linear-gradient(45deg, #007bff, #00c6ff);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 5px;
+    transition: transform 0.2s;
+}
+
+.send-button:hover {
+    transform: scale(1.05);
+}
+
+.send-button svg {
+    color: #ffffff;
+    transform: translate(2px, 0); /* Сдвинуть, чтобы выглядело как ракета */
+}
+
+/* СТИЛИ СООБЩЕНИЙ (ПОСТОВ) */
+.posts-grid {
+    display: grid;
+    /* Устанавливаем положение сообщений в 2D пространстве для имитации дизайна */
+    grid-template-areas: 
+        "empty-1 post-2 empty-2 post-4"
+        "post-1 input-area post-3 empty-3";
+    gap: 30px;
+    position: relative;
+    padding: 50px 0;
+}
+
+.post {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    padding: 15px 25px;
+    border-radius: 20px;
+    text-align: left;
+    min-width: 150px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    /* Анимация и плавный переход для эффекта "потока" */
+    transition: all 0.3s ease;
+    
+    /* Добавляем эффект неоновой обводки */
+    box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3);
+}
+
+.post p {
+    margin: 0 0 10px 0;
+}
+
+.post-footer {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.votes {
+    color: #00c6ff; /* Цвет для апвоутов */
+    margin-right: 15px;
+}
+
+.likes {
+    color: #ff69b4; /* Цвет для сердечек */
+}
+
+/* Позиционирование постов для имитации изображения */
+.post-1 { grid-area: post-1; justify-self: start; transform: translate(50px, 0); }
+.post-2 { grid-area: post-2; justify-self: center; transform: translate(0, 50px); }
+.post-3 { grid-area: post-3; justify-self: end; transform: translate(-20px, -50px); }
+.post-4 { grid-area: post-4; justify-self: end; transform: translate(100px, 0); }
+
+
+/* Скрываем элемент ввода, так как он не является частью сетки для позиционирования */
+.input-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10; 
+}
