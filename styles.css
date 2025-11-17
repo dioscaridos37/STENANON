@@ -2,7 +2,6 @@
 /* 1. ОБЩИЕ СТИЛИ И ФОН */
 /* ================================================= */
 body {
-    /* Фоновые стили остались прежними, для сохранения атмосферы */
     background: radial-gradient(circle at 50% 10%, #0c0033 0%, #000000 100%);
     color: #ffffff;
     font-family: Arial, sans-serif;
@@ -131,6 +130,7 @@ header h1 {
 }
 
 .delete-button { 
+    /* Стиль для кнопки удаления автора */
     position: absolute; top: 5px; right: 5px; background: none; border: none; 
     color: rgba(255, 255, 255, 0.5); font-size: 1.2em; cursor: pointer; 
     transition: color 0.2s; line-height: 1; padding: 5px; z-index: 60; 
