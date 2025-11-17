@@ -1,5 +1,8 @@
-/* ОБЩИЕ СТИЛИ И ФОН */
+/* ================================================= */
+/* 1. ОБЩИЕ СТИЛИ И ФОН */
+/* ================================================= */
 body {
+    /* Фоновые стили остались прежними, для сохранения атмосферы */
     background: radial-gradient(circle at 50% 10%, #0c0033 0%, #000000 100%);
     color: #ffffff;
     font-family: Arial, sans-serif;
@@ -7,104 +10,100 @@ body {
     padding: 0;
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 50px;
+    flex-direction: column; /* Главный контейнер для шапки, контента и футера */
 }
 
-.anon-wall {
-    width: 90%;
-    max-width: 1200px;
+header {
     text-align: center;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 header h1 {
-    font-size: 3em;
-    margin-bottom: 50px;
-    letter-spacing: 5px;
+    font-size: 2.5em;
+    margin: 0;
+    letter-spacing: 4px;
 }
 
-/* СТИЛИ КОНТЕЙНЕРА ВВОДА */
-.input-container {
+/* ================================================= */
+/* 2. МАКЕТ КОЛОНОК (GRID/FLEX) */
+/* ================================================= */
+.feed-layout {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 60%;
-    max-width: 500px;
-    margin: 0 auto 80px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    padding: 5px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    max-width: 1400px;
+    width: 95%;
+    margin: 20px auto 100px; /* Отступ снизу для фиксированного ввода */
+    gap: 40px;
+    flex-grow: 1; /* Растягиваем, чтобы занимал доступное место */
 }
 
-.input-container input {
+/* 2.1. ГЛАВНАЯ ЛЕНТА (По центру) */
+.main-feed {
     flex-grow: 1;
-    background: transparent;
-    border: none;
-    padding: 15px 20px;
-    color: #ffffff;
-    font-size: 1.1em;
-    outline: none;
+    max-width: 700px; /* Ограничиваем ширину ленты */
 }
 
-.input-container input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.send-button {
-    background: linear-gradient(45deg, #007bff, #00c6ff);
-    border: none;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
+.posts-list {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    margin-right: 5px;
-    transition: transform 0.2s;
+    flex-direction: column; /* Посты идут сверху вниз */
+    gap: 20px;
 }
 
-.send-button:hover {
-    transform: scale(1.05);
+/* 2.2. ТОП-КОЛОНКА (Справа) */
+.top-posts-sidebar {
+    width: 300px;
+    min-width: 300px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    border: 1px solid rgba(0, 198, 255, 0.3);
+    position: sticky; /* Закрепляем при прокрутке */
+    top: 20px;
+    max-height: 80vh;
+    overflow-y: auto; /* Прокрутка для колонки, если много постов */
 }
 
-.send-button svg {
-    color: #ffffff;
-    transform: translate(2px, 0); /* Сдвинуть, чтобы выглядело как ракета */
+.top-posts-sidebar h2 {
+    font-size: 1.5em;
+    color: #00c6ff;
+    border-bottom: 2px solid #00c6ff;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
 }
 
-/* СТИЛИ СООБЩЕНИЙ (ПОСТОВ) */
-.posts-grid {
-    display: grid;
-    /* Устанавливаем положение сообщений в 2D пространстве для имитации дизайна */
-    grid-template-areas: 
-        "empty-1 post-2 empty-2 post-4"
-        "post-1 input-area post-3 empty-3";
-    gap: 30px;
-    position: relative;
-    padding: 50px 0;
+#top-posts-container .post {
+    margin-bottom: 15px;
+    /* Убираем лишние тени для более компактного вида */
+    box-shadow: none; 
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
 }
 
+/* ================================================= */
+/* 3. СТИЛИ ПОСТОВ (Блоков) */
+/* ================================================= */
 .post {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(5px);
     padding: 15px 25px;
-    border-radius: 20px;
+    border-radius: 15px;
     text-align: left;
-    min-width: 150px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    /* Анимация и плавный переход для эффекта "потока" */
-    transition: all 0.3s ease;
-    
-    /* Добавляем эффект неоновой обводки */
+    /* Неоновая обводка */
     box-shadow: 0 0 5px rgba(0, 198, 255, 0.5), 0 0 10px rgba(0, 198, 255, 0.3);
+    transition: box-shadow 0.3s, transform 0.3s;
+    position: relative;
+}
+
+.post:hover {
+    box-shadow: 0 0 10px rgba(0, 198, 255, 0.8), 0 0 20px rgba(0, 198, 255, 0.5);
+    transform: translateY(-2px);
 }
 
 .post p {
     margin: 0 0 10px 0;
+    word-wrap: break-word;
 }
 
 .post-footer {
@@ -114,27 +113,130 @@ header h1 {
     color: rgba(255, 255, 255, 0.7);
 }
 
-.votes {
-    color: #00c6ff; /* Цвет для апвоутов */
+.votes, .likes {
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 5px 10px;
+    border-radius: 5px;
     margin-right: 15px;
 }
 
-.likes {
-    color: #ff69b4; /* Цвет для сердечек */
+.votes { color: #00c6ff; }
+.likes { color: #ff69b4; }
+
+.voted { 
+    opacity: 0.8; 
+    font-weight: bold; 
+    cursor: default !important;
 }
 
-/* Позиционирование постов для имитации изображения */
-.post-1 { grid-area: post-1; justify-self: start; transform: translate(50px, 0); }
-.post-2 { grid-area: post-2; justify-self: center; transform: translate(0, 50px); }
-.post-3 { grid-area: post-3; justify-self: end; transform: translate(-20px, -50px); }
-.post-4 { grid-area: post-4; justify-self: end; transform: translate(100px, 0); }
+.delete-button { 
+    position: absolute; top: 5px; right: 5px; background: none; border: none; 
+    color: rgba(255, 255, 255, 0.5); font-size: 1.2em; cursor: pointer; 
+    transition: color 0.2s; line-height: 1; padding: 5px; z-index: 60; 
+}
+.delete-button:hover { color: #ff0000; }
 
+/* ================================================= */
+/* 4. БЛОК ВВОДА (Внизу экрана) */
+/* ================================================= */
+.input-container-footer {
+    position: fixed; /* Закрепляем внизу */
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    border-top: 2px solid rgba(0, 198, 255, 0.2);
+    z-index: 100;
+}
 
-/* Скрываем элемент ввода, так как он не является частью сетки для позиционирования */
-.input-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10; 
+.input-container-footer input {
+    flex-grow: 1;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    padding: 15px 20px;
+    color: #ffffff;
+    font-size: 1.1em;
+    outline: none;
+    margin-right: 10px;
+}
+
+.send-button {
+    background: linear-gradient(45deg, #007bff, #00c6ff);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+
+.send-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00c6ff;
+}
+
+.send-button svg {
+    color: #ffffff;
+    transform: translate(2px, 0);
+}
+
+/* Стили кнопок фильтра */
+.feed-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-button {
+    padding: 8px 15px;
+    background: rgba(0, 198, 255, 0.2);
+    color: #ffffff;
+    border: 1px solid #00c6ff;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+.filter-button:hover {
+    background: rgba(0, 198, 255, 0.4);
+}
+
+.active-filter { 
+    background: #ff69b4 !important; 
+    border: 1px solid #ff69b4 !important;
+    box-shadow: 0 0 10px #ff69b4;
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 900px) {
+    .feed-layout {
+        flex-direction: column;
+        margin-bottom: 120px; /* Увеличиваем отступ */
+    }
+
+    .top-posts-sidebar {
+        width: auto;
+        min-width: unset;
+        position: static; /* Убираем sticky на мобильных */
+        max-height: unset;
+        margin-bottom: 20px;
+        order: -1; /* Показываем Топ-10 сверху на мобильных */
+    }
+
+    .input-container-footer input {
+        width: 80%;
+    }
 }
